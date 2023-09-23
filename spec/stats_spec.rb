@@ -60,8 +60,8 @@ RSpec.describe Stats do
   describe "#team_accuracies" do
     it "should calculate team accuracies for a certain season" do
       expected_accuracies = {
-        "6" => 0.29,
-        "3" => 0.24
+        "6" => 0.2857,
+        "3" => 0.2353
       }
       expect(@stat_tracker.team_accuracies("20122013")).to eq expected_accuracies
     end
@@ -144,9 +144,9 @@ RSpec.describe Stats do
     end
   end
 
-  describe "#percent_wins" do
+  describe "#team_season_win_pct" do
     it "creates a hash with all teams and hashes with their win percentages" do
-      expect(@stat_tracker.percent_wins["6"]["20122013"]).to eq(100.00)
+      expect(@stat_tracker.team_season_win_pct["6"]["20122013"]).to eq(100.00)
     end
   end
 
@@ -156,10 +156,10 @@ RSpec.describe Stats do
     end
   end
 
-  describe '#max_min_goals' do
+  describe "#team_goals" do
     it "creates an array goals scored totals" do
-      
-      expect(@stat_tracker.max_min_goals).to eq({:highest_goals=>{"3"=>2, "4"=>4, "6"=>3}, :lowest_goals=>{"3"=>2, "4"=>1, "6"=>2}})  
+      expected = [2, 2]
+      expect(@stat_tracker.team_goals["3"]).to eq expected
     end
   end
 end

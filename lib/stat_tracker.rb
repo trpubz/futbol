@@ -175,11 +175,11 @@ class StatTracker < Stats
   end
 
   def best_season(team_id)
-    teams_hash[:percent_wins][team_id].max_by { |k, v| v }[0]
+    teams_hash[:team_season_win_pct][team_id].max_by { |k, v| v }[0]
   end
 
   def worst_season(team_id)
-    teams_hash[:percent_wins][team_id].min_by { |k, v| v }[0]
+    teams_hash[:team_season_win_pct][team_id].min_by { |k, v| v }[0]
   end
 
   def average_win_percentage(team_id)
@@ -187,12 +187,11 @@ class StatTracker < Stats
   end
 
   def most_goals_scored(team_id)
-    teams_hash[:max_min_goals][:highest_goals][team_id]
+    teams_hash[:team_goals][team_id].max
   end
 
   def fewest_goals_scored(team_id)
-   teams_hash[:max_min_goals][:lowest_goals][team_id]
- end
-
+    teams_hash[:team_goals][team_id].min
+  end
   ###=== TEAM QUERIES ===###
 end

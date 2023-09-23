@@ -17,6 +17,17 @@ class Stats
     end
   end
 
+  # @return: [game_id] a valid array of game ids for a given season
+  def season_games(season)
+    season_games = []
+
+    @games_data.each do |game|
+      season_games << game[:game_id] if game[:season] == season
+    end
+
+    season_games
+  end
+
   ###=== GLOBAL HELPERS ===###
 
   ##== GAME HELPERS ==##
@@ -48,8 +59,8 @@ class Stats
   end
 
   def average_goals_per(interval)
-    # if interval argument ==  :game {total: [goals_per_game]}
-    # if interval argument == :season { season: [goals_per_game] }
+    # if interval argument ==  :game => {total: [goals_per_game]}
+    # if interval argument == :season => { season: [goals_per_game] }
     goals_by_interval = Hash.new { |hash, key| hash[key] = [] }
 
     @games_data.each do |game|
@@ -96,14 +107,11 @@ class Stats
   ##== SEASON HELPERS ==##
 
   def coach_season_win_pct(season)
-    season_games = []
-
-    @games_data.each do |game|
-      season_games << game[:game_id] if game[:season] == season
-    end
     # iterate over @game_teams_mock to verify :game_id is .include? in predicate array
     # if :game_id is valid, use :head_coach name as hash key, and shovel :result onto hash value array
     coach_results = Hash.new { |hash, key| hash[key] = [] }
+    season_games = season_games(season)
+
     @game_teams_data.each do |team_game|
       if season_games.include?(team_game[:game_id]) # game is in the queried season
         coach_results[team_game[:head_coach]] << team_game[:result]
@@ -113,6 +121,7 @@ class Stats
     coach_results.transform_values! do |results|
       (results.count("WIN") / results.size.to_f * 100.0).round(2)
     end
+
     coach_results
   end
 
@@ -120,24 +129,19 @@ class Stats
     team_accuracies = Hash.new { |hash, key| hash[key] = [0, 0] }  # {team_id: [goals, shots]}
     # array of hashes, each hash is data for a game team for specific season.
 
-    season_games = []
-    @games_data.each do |game|
-      season_games << game[:game_id] if game[:season] == season # && game[:type] == "Regular Season"
-    end
+    season_games = season_games(season)
 
     @game_teams_data.each do |game_team|
       team_id = game_team[:team_id]
-      goals = game_team[:goals].to_i
-      shots = game_team[:shots].to_i
 
       if season_games.include?(game_team[:game_id])
-        team_accuracies[team_id][0] += goals
-        team_accuracies[team_id][1] += shots
+        team_accuracies[team_id][0] += game_team[:goals].to_i
+        team_accuracies[team_id][1] += game_team[:shots].to_i
       end
     end
 
     team_accuracies.transform_values! do |goals_shots|
-      (goals_shots[0].to_f / goals_shots[1]).round(9)
+      (goals_shots[0].to_f / goals_shots[1]).round(4)
     end
 
     team_accuracies
@@ -145,23 +149,16 @@ class Stats
 
   def season_team_tackles(season)
     season_team_tackles = Hash.new(0)
+    season_games = season_games(season)
 
-    @games_data.each do |game|
-      if game[:season] == season
-        game_id = game[:game_id]
-        @game_teams_data.each do |game_team|
-          if game_team[:game_id] == game_id
-            team_id = game_team[:team_id]
-            season_team_tackles[team_id] += game_team[:tackles].to_i
-          end
-        end
-      end
+    @game_teams_data.each do |game_team|
+      season_team_tackles[game_team[:team_id]] += game_team[:tackles].to_i if season_games.include?(game_team[:game_id])
     end
 
     season_team_tackles
   end
 
-  ## SEASONAL SUMMARY AND HELPERS ##
+  ###=== SEASONAL SUMMARY AND HELPERS ===###
   def seasonal_summaries
     # seasonal summary {team_id: {season: {reg season: , post season: {win percentage: float, total_goals_scored: int, total_goals_against: int, avg goals scored: float, avg goals against: float}} } }
     seasonal_summaries = Hash.new { |hash, key| hash[key] = {} }
@@ -170,6 +167,7 @@ class Stats
     @teams_data.each do |team|
       team_id = team[:team_id]
       seasonal_summaries[team_id] = {}
+
       season_ids.each do |season_id|
         regular_season_stats = season_stats("Regular Season", season_id, team_id)
         postseason_stats = season_stats("Postseason", season_id, team_id)
@@ -198,23 +196,17 @@ class Stats
 
   # @return: win percentage as a float for a given team in a given season
   def win_percentage(season_type, season_id, team_id)
-    winning_game_count = 0
-    game_count = 0
-
+    season_type_games = []
     @games_data.each do |game|
-      if game[:type] == season_type && game[:season] == season_id
-        if game[:away_team_id] == team_id || game[:home_team_id] == team_id
-          game_count += 1
-          if game[:away_team_id] == team_id && game[:away_goals].to_i > game[:home_goals].to_i ||
-              game[:home_team_id] == team_id && game[:home_goals].to_i > game[:away_goals].to_i
-
-            winning_game_count += 1
-          end
-        end
-      end
+      season_type_games << game[:game_id] if game[:season] == season_id && game[:type] == season_type
     end
 
-    ((winning_game_count.to_f / game_count)).round(2)
+    results = []
+    @game_teams_data.each do |team_game|
+      results << team_game[:result] if season_type_games.include?(team_game[:game_id]) && team_game[:team_id] == team_id
+    end
+
+    (results.count("WIN") / results.size.to_f).round(2)
   end
 
   # returns integer for total goals scored by a given team in a given season
@@ -280,12 +272,11 @@ class Stats
   def teams_hash
     if @teams_hash.nil?
       @teams_hash = {}
-      
-      @teams_hash[:max_min_goals] = max_min_goals
+
       @teams_hash[:teams_info] = teams_info
-      @teams_hash[:percent_wins] = percent_wins
+      @teams_hash[:team_season_win_pct] = team_season_win_pct
       @teams_hash[:average_wins] = average_wins
-      @teams_hash[:team_goals] = nil
+      @teams_hash[:team_goals] = team_goals
       @teams_hash[:win_pct_opp] = win_pct_opp
       @teams_hash[:goal_diffs] = goal_diffs  # {team_id: [goal_diffs]}
       @teams_hash[:seasonal_summaries] = seasonal_summaries
@@ -295,7 +286,7 @@ class Stats
   end
 
   def teams_info
-    team_info_hash = Hash.new { |hash, key| hash[key] = {} } # {:team_id, CSV::Row from teams_data}
+    team_info_hash = Hash.new { |hash, key| hash[key] = {} }  # {team_id: {team info}}
 
     @teams_data.each do |team|
       team_info_hash[team[:team_id]] = {
@@ -305,12 +296,13 @@ class Stats
         "abbreviation" => team[:abbreviation],
         "link" => team[:link]
       }
+      puts "done with #{team_info_hash[team[:team_id]]["team_name"]}"
     end
 
     team_info_hash
   end
 
-  def percent_wins
+  def team_season_win_pct
     # {team_id: {season: win percentage}}
     percent_wins = Hash.new { |hash, key| hash[key] = {} }
     season_ids = @games_data.map { |game| game[:season] }.uniq
@@ -423,24 +415,15 @@ class Stats
     goal_diffs
   end
 
-  def max_min_goals
-    team_highest_goals = Hash.new { |hash, key| hash[key] = 0 } # a hash of {team_id: [highest goals scored]}
-    team_lowest_goals = Hash.new { |hash, key| hash[key] = Float::INFINITY } # a hash of {team_id: [lowest goals scored]}
+  # @return: {team_id: [all goals]}
+  def team_goals
+    team_goals = Hash.new { |hash, key| hash[key] = [] } # a hash of {team_id: [all goals scored]}
 
     @game_teams_data.each do |game_team|
-      team_id = game_team[:team_id]
-      goals_scored = game_team[:goals].to_i
-
-      if goals_scored > team_highest_goals[team_id]
-        team_highest_goals[team_id] = goals_scored
-      end
-
-      if goals_scored < team_lowest_goals[team_id]
-        team_lowest_goals[team_id] = goals_scored
-      end
+      team_goals[game_team[:team_id]] << game_team[:goals].to_i
     end
 
-    { highest_goals: team_highest_goals, lowest_goals: team_lowest_goals }
+    team_goals
   end
   #== TEAM HELPERS ==##
 end

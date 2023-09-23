@@ -246,20 +246,20 @@ RSpec.describe StatTracker do
   end
 
   describe "#average_win_percentage(team_id)" do
-    it "returns the average win percentage across all seasonss for given team" do
+    it "returns the average win percentage across all seasons for given team" do
       expect(@stat_tracker.average_win_percentage("6")).to eq(1.00)
       expect(@stat_tracker.average_win_percentage("6")).to be_a(Float)
     end
   end
 
-  describe '#most_goals_scored' do
-    it 'returns the highest number of goals scored by any team in a single game' do
+  describe "#most_goals_scored" do
+    it "returns the highest number of goals scored by any team in a single game" do
       expect(@stat_tracker.most_goals_scored("6")).to eq(3)
     end
   end
 
-  describe '#fewest_goals_scored' do
-    it 'returns the highest number of goals scored by any team in a single game' do
+  describe "#fewest_goals_scored" do
+    it "returns the highest number of goals scored by any team in a single game" do
       expect(@stat_tracker.fewest_goals_scored("6")).to eq(2)
     end
   end
