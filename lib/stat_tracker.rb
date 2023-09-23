@@ -1,5 +1,5 @@
 require "csv"
-require "stats"
+require_relative "stats"
 
 class StatTracker < Stats
   def self.from_csv(locations)
@@ -119,7 +119,7 @@ class StatTracker < Stats
 
   def most_accurate_team(season)
     most_accurate_team = team_accuracies(season).max_by { |_, ratio| ratio }
-# require 'pry'; binding.pry
+    # require 'pry'; binding.pry
 
     team_name_from_id(most_accurate_team[0])
   end

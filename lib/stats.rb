@@ -117,25 +117,35 @@ class Stats
   end
 
   def team_accuracies(season)
-    team_accuracies = Hash.new { |hash, key| hash[key] = [] }  # {team_id: [goals, shots]}
+    team_accuracies = Hash.new { |hash, key| hash[key] = [0, 0] }  # {team_id: [goals, shots]}
     # array of hashes, each hash is data for a game team for specific season.
-    game_teams_in_season = @game_teams_data.select do |game_team|
-      game_id = game_team[:game_id]
-      game = @games_data.find { |game| game[:game_id] == game_id }
-      game && game[:season] == season
+
+    season_games = []
+    @games_data.each do |game|
+      season_games << game[:game_id] if game[:season] == season
     end
 
-    game_teams_in_season.each do |game_team|
+    # game_teams_in_season = @game_teams_data.select do |game_team|
+    #   game_id = game_team[:game_id]
+    #   game = @games_data.find { |game| game[:game_id] == game_id }
+    #   game && game[:season] == season
+    # end
+
+    @game_teams_data.each do |game_team|
       team_id = game_team[:team_id]
       goals = game_team[:goals].to_i
       shots = game_team[:shots].to_i
 
-      team_accuracies[team_id] << goals.to_f / shots
+      if season_games.include?(game_team[:game_id])
+        team_accuracies[team_id][0] += goals
+        team_accuracies[team_id][1] += shots
+      end
     end
 
-    team_accuracies.transform_values! do |ratios|
-      (ratios.reduce(:+) / ratios.size).round(2)
+    team_accuracies.transform_values! do |goals_shots|
+      (goals_shots[0].to_f / goals_shots[1]).round(3)
     end
+
     team_accuracies
   end
 
