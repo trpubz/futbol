@@ -27,6 +27,12 @@ RSpec.describe StatTracker do
     end
   end
 
+  describe "#season_games" do
+    it "returns valid array of game ids for a given season" do
+      expect(@stat_tracker.season_games("20132014")).to eq %w[2013020236 2013020876]
+    end
+  end
+
   ###=== GAME QUERIES ===###
 
   describe "#highest_total_score" do

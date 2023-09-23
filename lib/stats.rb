@@ -1,3 +1,5 @@
+require_relative "team"
+
 class Stats
   attr_reader :games_data, :teams_data, :game_teams_data
 
@@ -7,13 +9,14 @@ class Stats
     @game_teams_data = game_teams_data
     @percentage_results = nil
     @teams_hash = nil
+    @teams = teams_data.map { |team| Team.new(team) }
   end
 
   ###=== GLOBAL HELPERS ===###
 
   def team_name_from_id(team_id)
-    @teams_data.each do |tm|
-      return tm[:teamname] if tm[:team_id] == team_id
+    @teams.each do |tm|
+      return tm.team_name if tm.team_id == team_id
     end
   end
 
@@ -288,14 +291,8 @@ class Stats
   def teams_info
     team_info_hash = Hash.new { |hash, key| hash[key] = {} }  # {team_id: {team info}}
 
-    @teams_data.each do |team|
-      team_info_hash[team[:team_id]] = {
-        "team_id" => team[:team_id],
-        "franchise_id" => team[:franchiseid],
-        "team_name" => team[:teamname],
-        "abbreviation" => team[:abbreviation],
-        "link" => team[:link]
-      }
+    @teams.each do |team|
+      team_info_hash.merge!(team.as_hash)
     end
 
     team_info_hash
