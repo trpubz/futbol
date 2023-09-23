@@ -122,14 +122,8 @@ class Stats
 
     season_games = []
     @games_data.each do |game|
-      season_games << game[:game_id] if game[:season] == season
+      season_games << game[:game_id] if game[:season] == season # && game[:type] == "Regular Season"
     end
-
-    # game_teams_in_season = @game_teams_data.select do |game_team|
-    #   game_id = game_team[:game_id]
-    #   game = @games_data.find { |game| game[:game_id] == game_id }
-    #   game && game[:season] == season
-    # end
 
     @game_teams_data.each do |game_team|
       team_id = game_team[:team_id]
@@ -143,7 +137,7 @@ class Stats
     end
 
     team_accuracies.transform_values! do |goals_shots|
-      (goals_shots[0].to_f / goals_shots[1]).round(3)
+      (goals_shots[0].to_f / goals_shots[1]).round(9)
     end
 
     team_accuracies
