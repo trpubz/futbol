@@ -154,7 +154,6 @@ class StatTracker < Stats
   end
 
   def team_info(team_id)
-    # require 'byebug'; byebug
     teams_hash[:teams_info][team_id]
   end
 

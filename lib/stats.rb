@@ -296,7 +296,6 @@ class Stats
         "abbreviation" => team[:abbreviation],
         "link" => team[:link]
       }
-      puts "done with #{team_info_hash[team[:team_id]]["team_name"]}"
     end
 
     team_info_hash

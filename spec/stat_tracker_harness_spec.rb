@@ -106,6 +106,7 @@ RSpec.describe StatTracker do
     }
 
     expect(@stat_tracker.team_info("18")).to eq expected
+    p "expectations met3"
   end
 
   it "#best_season" do
