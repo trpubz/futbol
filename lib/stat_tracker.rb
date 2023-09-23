@@ -1,5 +1,5 @@
 require "csv"
-require "stats"
+require_relative "stats"
 
 class StatTracker < Stats
   def self.from_csv(locations)
@@ -118,16 +118,16 @@ class StatTracker < Stats
   end
 
   def most_accurate_team(season)
-    most_accurate_team = team_accuracies(season).max_by { |_, ratio| ratio }
-# require 'pry'; binding.pry
+    most_accurate_team_id = team_accuracies(season).max_by { |_, ratio| ratio }[0]
+    # require 'pry'; binding.pry
 
-    team_name_from_id(most_accurate_team[0])
+    team_name_from_id(most_accurate_team_id)
   end
 
   def least_accurate_team(season)
-    least_accurate_team = team_accuracies(season).min_by { |_, ratio| ratio }
+    least_accurate_team_id = team_accuracies(season).min_by { |_, ratio| ratio }[0]
 
-    team_name_from_id(least_accurate_team[0])
+    team_name_from_id(least_accurate_team_id)
   end
 
   def most_tackles(season)
@@ -154,7 +154,6 @@ class StatTracker < Stats
   end
 
   def team_info(team_id)
-    # require 'byebug'; byebug
     teams_hash[:teams_info][team_id]
   end
 
@@ -175,11 +174,11 @@ class StatTracker < Stats
   end
 
   def best_season(team_id)
-    teams_hash[:percent_wins][team_id].max_by { |k, v| v }[0]
+    teams_hash[:team_season_win_pct][team_id].max_by { |k, v| v }[0]
   end
 
   def worst_season(team_id)
-    teams_hash[:percent_wins][team_id].min_by { |k, v| v }[0]
+    teams_hash[:team_season_win_pct][team_id].min_by { |k, v| v }[0]
   end
 
   def average_win_percentage(team_id)
@@ -187,12 +186,11 @@ class StatTracker < Stats
   end
 
   def most_goals_scored(team_id)
-    teams_hash[:max_min_goals][:highest_goals][team_id]
+    teams_hash[:team_goals][team_id].max
   end
 
   def fewest_goals_scored(team_id)
-   teams_hash[:max_min_goals][:lowest_goals][team_id]
- end
-
+    teams_hash[:team_goals][team_id].min
+  end
   ###=== TEAM QUERIES ===###
 end
