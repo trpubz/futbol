@@ -195,14 +195,14 @@ RSpec.describe StatTracker do
   describe "#team_info" do
     it "returns a hash with team information" do
       expected_team_info = {
-        "abbreviation" => "ATL",
-        "franchise_id" => "23",
-        "link" => "/api/v1/teams/1",
-        "team_id" => "1",
-        "team_name" => "Atlanta United",
+        "team_id" => "18",
+        "franchise_id" => "34",
+        "team_name" => "Minnesota United FC",
+        "abbreviation" => "MIN",
+        "link" => "/api/v1/teams/18"
       }
 
-      expect(@stat_tracker.team_info("1")).to eq(expected_team_info)
+      expect(@stat_tracker.team_info("18")).to eq(expected_team_info)
     end
   end
 
