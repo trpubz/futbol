@@ -42,22 +42,21 @@ class Stats
   end
 
   def percentage_results
-    # if @percentage_results.nil?
-      @percentage_results ||= {}
-      number_games = @games_data.length
+    @percentage_results ||= {}
+    number_games = @games_data.length
 
-      home_wins = @games_data.count { |game| game[:home_goals].to_i > game[:away_goals].to_i }
+    home_wins = @games_data.count { |game| game[:home_goals].to_i > game[:away_goals].to_i }
 
-      @percentage_results[:home_wins] = (home_wins.to_f / number_games).round(2)
+    @percentage_results[:home_wins] = (home_wins.to_f / number_games).round(2)
 
-      away_wins = @games_data.count { |game| game[:away_goals].to_i > game[:home_goals].to_i }
+    away_wins = @games_data.count { |game| game[:away_goals].to_i > game[:home_goals].to_i }
 
-      @percentage_results[:away_wins] = (away_wins.to_f / number_games).round(2)
+    @percentage_results[:away_wins] = (away_wins.to_f / number_games).round(2)
 
-      ties = @games_data.count { |game| game[:away_goals].to_i == game[:home_goals].to_i }
+    ties = @games_data.count { |game| game[:away_goals].to_i == game[:home_goals].to_i }
 
-      @percentage_results[:ties] = (ties.to_f / number_games).round(2)
-    # end
+    @percentage_results[:ties] = (ties.to_f / number_games).round(2)
+
 
     @percentage_results
   end
@@ -172,10 +171,7 @@ class Stats
     end
     season_ids = @games_data.map { |game| game[:season] }.uniq
 
-
-
     tasks = []
-
     @teams.each do |team|
       team_id = team.team_id
 
@@ -189,7 +185,6 @@ class Stats
     # in_processes tasks should remain between 8-16 to prevent file limit error/crashes
     results = Parallel.map(tasks, in_processes: 16) do |task|
       team_id, season_id, season_type = task  # unwrap task array
-
       season_type_stats = season_stats(season_type, season_id, team_id)
 
       [team_id, season_id, season_type, season_type_stats]  # return original variables and #season_stats calculation
