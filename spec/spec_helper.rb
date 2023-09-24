@@ -5,7 +5,6 @@ SimpleCov.start do
   add_filter "/data/"
 end
 
-require "rspec"
 require "csv"
 require "./lib/stat_tracker"
 require "./lib/stats"

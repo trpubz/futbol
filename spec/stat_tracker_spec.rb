@@ -232,7 +232,7 @@ RSpec.describe StatTracker do
                   total_goals_scored: 14,
                   win_percentage: 1.0}
 
-      expect(@stat_tracker.seasonal_summary("6")["20122013"][:postseason]).to eq(expected)
+      expect(@stat_tracker.seasonal_summary("6")["20122013"]["Postseason"]).to eq(expected)
     end
   end
 
