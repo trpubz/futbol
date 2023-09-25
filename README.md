@@ -41,7 +41,8 @@
 
   
 ### ERD for Data
-![erd_v1](https://github.com/trpubz/futbol/assets/25095319/9071d533-9f56-4e2a-ba61-359107162d1a)
+![fut_data_v2](https://github.com/trpubz/futbol/assets/25095319/f4109172-f2fc-430c-91af-17da37e99a0b)
+
 
 
 ## DTR
