@@ -2,6 +2,11 @@
 
 [Turing School](https://turing.io/) Futbol project.
 
+## Requirements
+- Gemfile must `require "parallel"`
+- Verify environment is ready for test with `bundle install`
+- execute RSpec suite with `bundle exec rspec` command
+
 ## Check-in Plan
 
 - Check-ins will occur daily
@@ -36,7 +41,8 @@
 
   
 ### ERD for Data
-![erd_v1](https://github.com/trpubz/futbol/assets/25095319/9071d533-9f56-4e2a-ba61-359107162d1a)
+![fut_data_v2](https://github.com/trpubz/futbol/assets/25095319/f4109172-f2fc-430c-91af-17da37e99a0b)
+
 
 
 ## DTR

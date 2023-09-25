@@ -27,6 +27,12 @@ RSpec.describe StatTracker do
     end
   end
 
+  describe "#season_games" do
+    it "returns valid array of game ids for a given season" do
+      expect(@stat_tracker.season_games("20132014")).to eq %w[2013020236 2013020876]
+    end
+  end
+
   ###=== GAME QUERIES ===###
 
   describe "#highest_total_score" do
@@ -189,14 +195,14 @@ RSpec.describe StatTracker do
   describe "#team_info" do
     it "returns a hash with team information" do
       expected_team_info = {
-        "abbreviation" => "ATL",
-        "franchise_id" => "23",
-        "link" => "/api/v1/teams/1",
-        "team_id" => "1",
-        "team_name" => "Atlanta United",
+        "team_id" => "18",
+        "franchise_id" => "34",
+        "team_name" => "Minnesota United FC",
+        "abbreviation" => "MIN",
+        "link" => "/api/v1/teams/18"
       }
 
-      expect(@stat_tracker.team_info("1")).to eq(expected_team_info)
+      expect(@stat_tracker.team_info("18")).to eq(expected_team_info)
     end
   end
 
@@ -226,7 +232,7 @@ RSpec.describe StatTracker do
                   total_goals_scored: 14,
                   win_percentage: 1.0}
 
-      expect(@stat_tracker.seasonal_summary("6")["20122013"][:postseason]).to eq(expected)
+      expect(@stat_tracker.seasonal_summary("6")["20122013"]["Postseason"]).to eq(expected)
     end
   end
 

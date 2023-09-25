@@ -140,7 +140,7 @@ RSpec.describe Stats do
                   total_goals_scored: 14,
                   win_percentage: 1.0}
       expect(@stat_tracker.seasonal_summaries["6"]).to be_a Hash
-      expect(@stat_tracker.seasonal_summaries["6"]["20122013"][:postseason]).to eq(expected)
+      expect(@stat_tracker.seasonal_summaries["6"]["20122013"]["Postseason"]).to eq(expected)
     end
   end
 

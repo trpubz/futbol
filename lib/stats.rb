@@ -1,3 +1,6 @@
+require_relative "team"
+require "parallel"
+
 class Stats
   attr_reader :games_data, :teams_data, :game_teams_data
 
@@ -7,13 +10,14 @@ class Stats
     @game_teams_data = game_teams_data
     @percentage_results = nil
     @teams_hash = nil
+    @teams = teams_data.map { |team| Team.new(team) }
   end
 
   ###=== GLOBAL HELPERS ===###
 
   def team_name_from_id(team_id)
-    @teams_data.each do |tm|
-      return tm[:teamname] if tm[:team_id] == team_id
+    @teams.each do |tm|
+      return tm.team_name if tm.team_id == team_id
     end
   end
 
@@ -38,22 +42,21 @@ class Stats
   end
 
   def percentage_results
-    if @percentage_results.nil?
-      @percentage_results = {}
-      number_games = @games_data.length
+    @percentage_results ||= {}
+    number_games = @games_data.length
 
-      home_wins = @games_data.count { |game| game[:home_goals].to_i > game[:away_goals].to_i }
+    home_wins = @games_data.count { |game| game[:home_goals].to_i > game[:away_goals].to_i }
 
-      @percentage_results[:home_wins] = (home_wins.to_f / number_games).round(2)
+    @percentage_results[:home_wins] = (home_wins.to_f / number_games).round(2)
 
-      away_wins = @games_data.count { |game| game[:away_goals].to_i > game[:home_goals].to_i }
+    away_wins = @games_data.count { |game| game[:away_goals].to_i > game[:home_goals].to_i }
 
-      @percentage_results[:away_wins] = (away_wins.to_f / number_games).round(2)
+    @percentage_results[:away_wins] = (away_wins.to_f / number_games).round(2)
 
-      ties = @games_data.count { |game| game[:away_goals].to_i == game[:home_goals].to_i }
+    ties = @games_data.count { |game| game[:away_goals].to_i == game[:home_goals].to_i }
 
-      @percentage_results[:ties] = (ties.to_f / number_games).round(2)
-    end
+    @percentage_results[:ties] = (ties.to_f / number_games).round(2)
+
 
     @percentage_results
   end
@@ -161,20 +164,34 @@ class Stats
   ###=== SEASONAL SUMMARY AND HELPERS ===###
   def seasonal_summaries
     # seasonal summary {team_id: {season: {reg season: , post season: {win percentage: float, total_goals_scored: int, total_goals_against: int, avg goals scored: float, avg goals against: float}} } }
-    seasonal_summaries = Hash.new { |hash, key| hash[key] = {} }
+    seasonal_summaries = Hash.new do |h, k|
+      h[k] = Hash.new do |h2, k2|
+        h2[k2] = {}
+      end
+    end
     season_ids = @games_data.map { |game| game[:season] }.uniq
 
-    @teams_data.each do |team|
-      team_id = team[:team_id]
-      seasonal_summaries[team_id] = {}
+    tasks = []
+    @teams.each do |team|
+      team_id = team.team_id
 
       season_ids.each do |season_id|
-        regular_season_stats = season_stats("Regular Season", season_id, team_id)
-        postseason_stats = season_stats("Postseason", season_id, team_id)
-
-        seasonal_summaries[team_id][season_id] = {regular_season: regular_season_stats,
-          postseason: postseason_stats}
+        ["Regular Season", "Postseason"].each do |season_type|
+          tasks << [team_id, season_id, season_type]
+        end
       end
+    end
+
+    # in_processes tasks should remain between 8-16 to prevent file limit error/crashes
+    results = Parallel.map(tasks, in_processes: 16) do |task|
+      team_id, season_id, season_type = task  # unwrap task array
+      season_type_stats = season_stats(season_type, season_id, team_id)
+
+      [team_id, season_id, season_type, season_type_stats]  # return original variables and #season_stats calculation
+    end
+
+    results.each do |team_id, season_id, season_type, season_type_stats|
+      seasonal_summaries[team_id][season_id][season_type] = season_type_stats
     end
 
     seasonal_summaries
@@ -203,7 +220,8 @@ class Stats
 
     results = []
     @game_teams_data.each do |team_game|
-      results << team_game[:result] if season_type_games.include?(team_game[:game_id]) && team_game[:team_id] == team_id
+        results << team_game[:result] if season_type_games.include?(team_game[:game_id]) && \
+          team_game[:team_id] == team_id
     end
 
     (results.count("WIN") / results.size.to_f).round(2)
@@ -217,7 +235,7 @@ class Stats
       if game[:type] == season_type && game[:season] == season_id
         if game[:away_team_id] == team_id
           total_goals_scored += game[:away_goals].to_i
-        elsif game[:home_team_id] == team_id
+        else  # if game[:home_team_id] == team_id
           total_goals_scored += game[:home_goals].to_i
         end
       end
@@ -233,7 +251,7 @@ class Stats
       if game[:type] == season_type && game[:season] == season_id
         if game[:away_team_id] == team_id
           total_goals_against += game[:home_goals].to_i
-        elsif game[:home_team_id] == team_id
+        else  # if game[:home_team_id] == team_id
           total_goals_against += game[:away_goals].to_i
         end
       end
@@ -288,14 +306,8 @@ class Stats
   def teams_info
     team_info_hash = Hash.new { |hash, key| hash[key] = {} }  # {team_id: {team info}}
 
-    @teams_data.each do |team|
-      team_info_hash[team[:team_id]] = {
-        "team_id" => team[:team_id],
-        "franchise_id" => team[:franchiseid],
-        "team_name" => team[:teamname],
-        "abbreviation" => team[:abbreviation],
-        "link" => team[:link]
-      }
+    @teams.each do |team|
+      team_info_hash.merge!(team.as_hash)
     end
 
     team_info_hash
